@@ -1,0 +1,271 @@
+<html>
+<head>
+    <title>AI Chatbot</title>
+    <style>
+
+
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #cceeff, #f6d5ff);
+
+}
+
+/* outer center */
+.chat-wrapper {
+  width: 420px;
+}
+
+/* MAIN CONTAINER */
+.chat-container {
+    width:380px;
+    height:520px;
+    background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+
+}
+.chat-header {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 14px;
+  font-size: 18px;
+  scroll-behavior:smooth;
+
+}
+
+/* HEADER */
+.chat-body {
+    padding: 16px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+}
+
+/* CHAT BODY */
+.chat-messages {
+    flex: 1;
+    padding-right: 6px;
+    overflow-y: auto;
+    background: #f1f1f5;
+}
+
+/* BUBBLES */
+.chat-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+}
+
+.bubble {
+    width: fit-content;          /* 🔥 KEY POINT */
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* User message (right side) */
+.bubble.user {
+    background: #2563eb;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 6px;
+}
+
+/* Bot message (left side) */
+.bubble.bot {
+    background: #e5e7eb;
+    color: #111;
+    align-self: flex-start;
+    border-bottom-left-radius: 6px;
+}
+
+.user {
+    background: #212123;
+    color: white;
+    margin-left: auto;
+}
+
+.bot {
+    background: #e5e7eb;
+    color: black;
+    margin-right: auto;
+}
+
+/* INPUT AREA */
+.chat-input {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid #eee;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.voice-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #2b2b2b;
+    color: #e5e7eb;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+
+.send-btn {
+    background: #4f46e5;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    cursor: pointer;
+}
+.mic {
+  width: 38px;
+  height: 38px;
+  background: #f3f4f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s;
+  font-size: 18px;
+}
+
+/* mic ON (recording) */
+.mic.active {
+  background: #ff4d4d;
+  color: white;
+  box-shadow: 0 0 12px rgba(255, 77, 77, 0.8);
+  animation: pulse 1.2s infinite;
+}
+
+/* pulse animation */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,77,77,0.6); }
+  70% { box-shadow: 0 0 0 10px rgba(255,77,77,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,77,77,0); }
+}
+     
+    </style>
+<body>
+
+<div class="bg">
+<div class="chat-container">
+  
+    <div class="chat-header">
+      💬 <span>AI Chatbot</span>
+    </div>
+    <div class="chat-body">
+        <div class="bubble bot"></div>
+    <div id="messages" class="chat-messages"></div>
+   
+
+    <div class="chat-input">
+      <button class="voice-btn" onclick="startVoice()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+       xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"
+          fill="currentColor"/>
+    <path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0
+             7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11Z"
+          fill="currentColor"/>
+  </svg>
+</button>
+      <input type="text" id="input" placeholder="Type a message...">
+      <button class="send-btn" onclick="sendMsg()"> ➤</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // VOICE INPUT
+let recognition;
+let isRecording = false;
+
+function startVoice() {
+  if (!("webkitSpeechRecognition" in window)) {
+    alert("Voice input not supported in this browser");
+    return;
+  }
+
+  if (isRecording) return;
+
+  recognition = new webkitSpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  const micBtn = document.getElementById("micBtn");
+  const inputBox = document.querySelector(".chat-input input");
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add("active"); // mic ON
+  };
+
+  recognition.onresult = (event) => {
+    inputBox.value = event.results[0][0].transcript;
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove("active"); // mic OFF
+  };
+
+  recognition.onerror = () => {
+    isRecording = false;
+    micBtn.classList.remove("active");
+  };
+
+  recognition.start();
+}
+
+    function sendMsg() {
+        let input = document.getElementById("input");
+        let userMsg=input.value.trim();
+        if (!userMsg) return;
+
+        let messages = document.getElementById("messages");
+        messages.innerHTML += `<div class='bubble user'>${userMsg}</div>`;
+        messages.scrollTop = messages.scrollHeight;
+
+        fetch("http://127.0.0.1:5000/chat", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({message: userMsg})
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            messages.innerHTML += `<div class='bubble bot'>${data.bot_reply}</div>`;
+        });
+
+        document.getElementById("input").value = "";
+    }
+</script>
+
+</body>
+</html>
