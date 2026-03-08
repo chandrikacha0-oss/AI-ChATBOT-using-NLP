@@ -8,8 +8,8 @@ load_dotenv()
 app=Flask('__name__')
 CORS(app)
 
-SC_API_KEY ="AIzaSyDLbRod6eIfd-VJIp__rr5m7sFM_jgce-s"
-genai.configure(api_key=SC_API_KEY)
+API_KEY ="Your_API_key"
+genai.configure(api_key=API_KEY)
 
 
 model=genai.GenerativeModel("models/gemini-2.5-flash")
@@ -38,3 +38,4 @@ def chat_response():
 
 if __name__=="__main__":
     app.run(debug=True)
+
